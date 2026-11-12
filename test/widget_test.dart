@@ -7,9 +7,9 @@ void main() {
   ) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('2406000001'), findsOneWidget);
-    expect(find.text('Burhan'), findsOneWidget);
-    expect(find.text('PBP A'), findsOneWidget);
+    expect(find.text('2506656545'), findsOneWidget);
+    expect(find.text('Bagas Aulia Rezki'), findsOneWidget);
+    expect(find.text('PBP E'), findsOneWidget);
     expect(find.text('Lihat Proyek'), findsOneWidget);
     expect(find.text('Tambah Proyek'), findsOneWidget);
     expect(find.text('Logout'), findsOneWidget);
