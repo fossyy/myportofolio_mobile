@@ -51,4 +51,35 @@ void main() {
       expect(material.color, cards[index].item.color);
     }
   });
+
+  testWidgets('membuka halaman Tentang dari AppBar', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.byTooltip('Tentang aplikasi'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tentang Aplikasi'), findsOneWidget);
+    expect(find.text('2506656545'), findsOneWidget);
+    expect(find.text('Bagas Aulia Rezki'), findsOneWidget);
+    expect(find.text('PBP E'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
+  });
+
+  testWidgets('layout tetap aman di layar sempit', (tester) async {
+    tester.view.physicalSize = const Size(320, 480);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Lihat Portofolio'), findsOneWidget);
+    expect(find.text('Tambah Proyek'), findsOneWidget);
+    expect(find.text('Logout'), findsOneWidget);
+  });
 }
