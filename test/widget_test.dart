@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/main.dart';
-import 'package:myportofolio_mobile/menu.dart';
+import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/widgets/project_card.dart';
 
 void main() {
   testWidgets('menampilkan identitas dan menu portofolio', (tester) async {
@@ -29,6 +31,11 @@ void main() {
 
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
+
+      if (name == 'Tambah Proyek') {
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+      }
     }
   });
 
@@ -81,5 +88,102 @@ void main() {
     expect(find.text('Lihat Portofolio'), findsOneWidget);
     expect(find.text('Tambah Proyek'), findsOneWidget);
     expect(find.text('Logout'), findsOneWidget);
+  });
+
+  testWidgets('drawer berpindah antara halaman utama dan form proyek', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    expect(find.text('My Portfolio'), findsOneWidget);
+
+    await tester.tap(find.text('Add Project'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ProjectFormPage), findsOneWidget);
+    expect(find.text('Add Project Form'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MyHomePage), findsOneWidget);
+    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
+  });
+
+  testWidgets('tombol Tambah Proyek membuka form dan dapat kembali', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProjectFormPage), findsOneWidget);
+    expect(
+      Navigator.of(tester.element(find.byType(ProjectFormPage))).canPop(),
+      isTrue,
+    );
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MyHomePage), findsOneWidget);
+  });
+
+  testWidgets('form memvalidasi dan menampilkan data proyek', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(const MyApp());
+    await tester.tap(find.text('Tambah Proyek'));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
+
+    final fields = find.byType(TextFormField);
+    await tester.enterText(fields.at(0), 'Portfolio Mobile');
+    await tester.enterText(fields.at(1), 'Aplikasi portofolio pribadi.');
+    await tester.enterText(fields.at(2), 'Flutter');
+
+    await tester.ensureVisible(find.byType(DropdownButtonFormField<String>));
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mobile Development').last);
+    await tester.pumpAndSettle();
+
+    await tester.enterText(fields.at(3), 'https://example.com/project');
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
+    expect(find.text('Nama Proyek: Portfolio Mobile'), findsOneWidget);
+    expect(
+      find.text('Deskripsi: Aplikasi portofolio pribadi.'),
+      findsOneWidget,
+    );
+    expect(find.text('Kategori: Mobile Development'), findsOneWidget);
+    expect(find.text('Teknologi: Flutter'), findsOneWidget);
+    expect(find.text('Tautan: https://example.com/project'), findsOneWidget);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
+    expect(find.byType(ProjectFormPage), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
