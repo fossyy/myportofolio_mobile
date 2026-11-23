@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/screens/about_page.dart';
+import 'package:myportofolio_mobile/screens/education_form.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
@@ -18,6 +20,18 @@ class MyHomePage extends StatelessWidget {
       Icons.add_circle,
       Colors.green.shade800,
       page: const ProjectFormPage(),
+    ),
+    ItemHomepage(
+      "Tambah Pengalaman",
+      Icons.work,
+      Colors.orange.shade900,
+      page: const ExperienceFormPage(),
+    ),
+    ItemHomepage(
+      "Tambah Edukasi",
+      Icons.school,
+      Colors.purple.shade700,
+      page: const EducationFormPage(),
     ),
     ItemHomepage("Logout", Icons.logout, Colors.red.shade700),
   ];

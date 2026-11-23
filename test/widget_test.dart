@@ -7,6 +7,16 @@ import 'package:myportofolio_mobile/screens/menu.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
+const cardNames = [
+  'Lihat Portofolio',
+  'Tambah Proyek',
+  'Tambah Pengalaman',
+  'Tambah Edukasi',
+  'Logout',
+];
+
+const cardsWithPage = {'Tambah Proyek', 'Tambah Pengalaman', 'Tambah Edukasi'};
+
 void main() {
   testWidgets('menampilkan identitas dan menu portofolio', (tester) async {
     await tester.pumpWidget(const MyApp());
@@ -14,10 +24,10 @@ void main() {
     expect(find.text('2506656545'), findsOneWidget);
     expect(find.text('Bagas Aulia Rezki'), findsOneWidget);
     expect(find.text('PBP E'), findsOneWidget);
-    expect(find.byType(ItemCard), findsNWidgets(3));
-    expect(find.text('Lihat Portofolio'), findsOneWidget);
-    expect(find.text('Tambah Proyek'), findsOneWidget);
-    expect(find.text('Logout'), findsOneWidget);
+    expect(find.byType(ItemCard), findsNWidgets(5));
+    for (final name in cardNames) {
+      expect(find.text(name), findsOneWidget);
+    }
   });
 
   testWidgets('setiap tombol menampilkan SnackBar sesuai namanya', (
@@ -25,7 +35,9 @@ void main() {
   ) async {
     await tester.pumpWidget(const MyApp());
 
-    for (final name in const ['Lihat Portofolio', 'Tambah Proyek', 'Logout']) {
+    for (final name in cardNames) {
+      await tester.ensureVisible(find.text(name));
+      await tester.pumpAndSettle();
       await tester.tap(find.text(name));
       await tester.pumpAndSettle();
 
@@ -34,7 +46,7 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
 
-      if (name == 'Tambah Proyek') {
+      if (cardsWithPage.contains(name)) {
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
       }
@@ -87,9 +99,9 @@ void main() {
     await tester.pumpWidget(const MyApp());
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Lihat Portofolio'), findsOneWidget);
-    expect(find.text('Tambah Proyek'), findsOneWidget);
-    expect(find.text('Logout'), findsOneWidget);
+    for (final name in cardNames) {
+      expect(find.text(name), findsOneWidget);
+    }
   });
 
   testWidgets('drawer berpindah antara halaman utama dan form proyek', (
@@ -188,6 +200,34 @@ void main() {
 
     expect(find.byType(MyHomePage), findsOneWidget);
   });
+
+  for (final entry in {
+    'Tambah Pengalaman': ExperienceFormPage,
+    'Tambah Edukasi': EducationFormPage,
+  }.entries) {
+    testWidgets('kartu ${entry.key} membuka form dan tombol kembali bekerja', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MyApp());
+
+      await tester.ensureVisible(find.text(entry.key));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(entry.key));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(entry.value), findsOneWidget);
+      expect(
+        Navigator.of(tester.element(find.byType(entry.value))).canPop(),
+        isTrue,
+      );
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(entry.value), findsNothing);
+      expect(find.byType(MyHomePage), findsOneWidget);
+    });
+  }
 
   testWidgets('form memvalidasi dan menampilkan data proyek', (tester) async {
     tester.view.physicalSize = const Size(320, 640);

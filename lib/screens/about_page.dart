@@ -28,8 +28,8 @@ class AboutPage extends StatelessWidget {
             ),
             const SizedBox(height: 8.0),
             const Text(
-              'Aplikasi ini menampilkan identitas pemilik portofolio dan tiga aksi utama. '
-              'Data profil dan menu masih disimpan di dalam kode, jadi aplikasi bisa berjalan tanpa backend.',
+              'Aplikasi ini menampilkan identitas pemilik portofolio, kartu aksi, dan formulir untuk menambah proyek, pengalaman, serta edukasi. '
+              'Data masih disimpan di dalam kode, jadi aplikasi bisa berjalan tanpa backend.',
             ),
             const SizedBox(height: 24.0),
             Card(
@@ -74,7 +74,16 @@ class AboutPage extends StatelessWidget {
                     ),
                     const _FeatureRow(
                       icon: Icons.dashboard_customize_outlined,
-                      text: 'Tiga tombol aksi dengan warna berbeda dan pesan SnackBar.',
+                      text: 'Lima kartu aksi dengan warna berbeda dan pesan SnackBar.',
+                    ),
+                    const _FeatureRow(
+                      icon: Icons.menu,
+                      text:
+                          'Drawer untuk berpindah ke Home dan setiap formulir.',
+                    ),
+                    const _FeatureRow(
+                      icon: Icons.edit_note,
+                      text: 'Formulir Proyek, Pengalaman, dan Edukasi dengan validasi dan dialog ringkasan.',
                     ),
                     const _FeatureRow(
                       icon: Icons.info_outline,
@@ -86,7 +95,7 @@ class AboutPage extends StatelessWidget {
             ),
             const SizedBox(height: 16.0),
             const Text(
-              'Dibuat dengan Flutter dan Dart untuk Individual Assignment 7 PBP.',
+              'Dibuat dengan Flutter dan Dart untuk Individual Assignment 8 PBP.',
             ),
           ],
         ),
