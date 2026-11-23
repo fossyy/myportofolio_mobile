@@ -1,5 +1,8 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:myportofolio_mobile/about_page.dart';
+import 'package:myportofolio_mobile/screens/about_page.dart';
+import 'package:myportofolio_mobile/screens/education_form.dart';
+import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/project_form.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
@@ -12,7 +15,24 @@ class MyHomePage extends StatelessWidget {
 
   final List<ItemHomepage> items = [
     ItemHomepage("Lihat Portofolio", Icons.folder, Colors.blue.shade700),
-    ItemHomepage("Tambah Proyek", Icons.add_circle, Colors.green.shade800),
+    ItemHomepage(
+      "Tambah Proyek",
+      Icons.add_circle,
+      Colors.green.shade800,
+      page: const ProjectFormPage(),
+    ),
+    ItemHomepage(
+      "Tambah Pengalaman",
+      Icons.work,
+      Colors.orange.shade900,
+      page: const ExperienceFormPage(),
+    ),
+    ItemHomepage(
+      "Tambah Edukasi",
+      Icons.school,
+      Colors.purple.shade700,
+      page: const EducationFormPage(),
+    ),
     ItemHomepage("Logout", Icons.logout, Colors.red.shade700),
   ];
 
@@ -132,6 +152,7 @@ class ItemHomepage {
   final String name;
   final IconData icon;
   final Color color;
+  final Widget? page;
 
-  ItemHomepage(this.name, this.icon, this.color);
+  ItemHomepage(this.name, this.icon, this.color, {this.page});
 }
