@@ -9,23 +9,42 @@ Aplikasi mobile portofolio pribadi yang dibuat dengan Flutter. Proyek ini melanj
 ## Fitur
 
 - Tiga kartu identitas untuk NPM, nama, dan kelas.
-- Tiga tombol aksi: Lihat Portofolio, Tambah Proyek, dan Logout.
-- Setiap tombol punya warna berbeda dan menampilkan SnackBar saat ditekan.
+- Lima kartu aksi: Lihat Portofolio, Tambah Proyek, Tambah Pengalaman, Tambah Edukasi, dan Logout.
+- Setiap kartu punya warna berbeda dan menampilkan SnackBar saat ditekan. Kartu Tambah Proyek, Tambah Pengalaman, dan Tambah Edukasi juga membuka formulirnya dengan `Navigator.push()`.
+- Drawer dengan opsi Home, Add Project, Add Experience, dan Add Education. Drawer yang sama dipakai di halaman utama dan semua halaman formulir.
+- Formulir Tambah Pengalaman yang mengikuti model `Experience` di web portofolio: judul, organisasi, kategori, deskripsi, proyek, teknologi, URL thumbnail, tanggal mulai, dan tanggal selesai.
+- Formulir Tambah Edukasi yang mengikuti model `Education` di web portofolio: kualifikasi, institusi, tahun mulai, dan tahun selesai.
+- Validasi isian wajib, isian yang hanya berisi spasi, batas panjang, format URL, rentang tahun, serta urutan tanggal dan tahun.
+- Dialog ringkasan muncul setelah semua isian lolos validasi. Tombol OK menutup dialog dan mengosongkan formulir.
 - Halaman Tentang yang bisa dibuka dari ikon info di AppBar.
-- Layout bisa digulir dan jumlah kolom menyesuaikan lebar layar.
-- Data profil dan menu masih statis di dalam kode. Aplikasi tidak memerlukan backend.
-
-Ketiga tombol aksi saat ini hanya menampilkan SnackBar sesuai instruksi tugas. Halaman daftar portofolio dan form tambah data belum dibuat.
+- Layout bisa digulir, sehingga tombol Simpan tetap bisa dijangkau di layar sempit atau saat papan ketik tampil.
+- Data profil dan menu masih statis di dalam kode. Isian formulir belum dikirim ke backend.
 
 ## Struktur Proyek
 
 ```text
 lib/
-  main.dart         # bootstrap aplikasi dan MaterialApp
-  menu.dart         # halaman utama, InfoCard, ItemCard, dan ItemHomepage
-  about_page.dart   # halaman Tentang
+  main.dart                   # bootstrap aplikasi dan MaterialApp
+  models/
+    education.dart            # data edukasi dan format periode
+    experience.dart           # data pengalaman, pilihan kategori, dan format periode
+  screens/
+    menu.dart                 # halaman utama, InfoCard, dan ItemHomepage
+    about_page.dart           # halaman Tentang
+    project_form.dart         # formulir Tambah Proyek (Tutorial 09)
+    experience_form.dart      # formulir Tambah Pengalaman
+    education_form.dart       # formulir Tambah Edukasi
+  utils/
+    validators.dart           # validator bersama untuk isian wajib, panjang, URL, dan tahun
+    date_format.dart          # format tanggal tanpa package tambahan
+  widgets/
+    left_drawer.dart          # drawer navigasi yang dipakai semua halaman
+    project_card.dart         # ItemCard untuk kartu aksi
+    summary_dialog.dart       # AlertDialog ringkasan isian formulir
 test/
-  widget_test.dart  # pengujian widget
+  widget_test.dart            # pengujian halaman utama, kartu, drawer, dan navigasi
+  experience_form_test.dart   # pengujian formulir Tambah Pengalaman
+  education_form_test.dart    # pengujian formulir Tambah Edukasi
 ```
 
 ## Cara Menjalankan
@@ -53,7 +72,14 @@ flutter analyze
 flutter test
 ```
 
-`flutter analyze` harus selesai tanpa issue. `flutter test` mengecek identitas pemilik, pesan SnackBar, warna kartu, halaman Tentang, dan layout pada layar sempit.
+### Pengujian Manual Tugas 8
+
+1. Jalankan `flutter run -d chrome`.
+2. Buka Tambah Pengalaman dan Tambah Edukasi dari kartu aksi, lalu kembali dengan tombol kembali.
+3. Buka kedua formulir dari drawer, lalu pilih Home untuk kembali ke halaman utama.
+4. Kosongkan salah satu isian wajib atau isi dengan spasi, lalu tekan Simpan. Pesan kesalahan harus muncul di kolom terkait.
+5. Lengkapi isian, tekan Simpan, dan pastikan dialog menampilkan data yang baru dimasukkan. Tekan OK untuk kembali ke formulir.
+6. Ulangi dengan mode perangkat selebar ponsel di DevTools Chrome untuk memastikan tombol Simpan tetap bisa dijangkau.
 
 ## Dokumentasi Progres Mingguan
 
@@ -72,6 +98,25 @@ flutter test
 - Menambahkan layout yang bisa digulir, penyesuaian jumlah kolom, dan halaman Tentang (`7eeb140`).
 - Menambahkan pengujian untuk identitas, SnackBar, warna kartu, halaman Tentang, dan layout layar sempit.
 - Menulis dokumentasi proyek dan jawaban pertanyaan reflektif di README ini.
+
+### Minggu 9: Tutorial 09 (18 November 2026)
+
+- Memindahkan halaman ke `lib/screens/` dan widget ke `lib/widgets/` (`0095efe`).
+- Menambahkan `LeftDrawer` dengan opsi Home dan Add Project.
+- Membuat formulir Tambah Proyek dengan `Form`, `GlobalKey<FormState>`, validator, dan `AlertDialog`.
+- Kartu Tambah Proyek membuka formulir dengan `Navigator.push()`.
+
+### Tugas 8: Navigation, Layouts, Forms, and Input Elements (16 sampai 23 November 2026)
+
+- Mengerjakan perubahan di branch `feat/assignment-8` dengan commit terpisah untuk setiap bagian.
+- Memindahkan halaman Tentang ke `lib/screens/` (`ea9b8a9`).
+- Menambahkan atribut `page` pada `ItemHomepage`, sehingga kartu tidak lagi memeriksa nama untuk membuka halaman (`90ae428`).
+- Membuat formulir Tambah Pengalaman dengan date picker, dropdown kategori, validasi URL, dan validasi urutan tanggal (`a6da06d`).
+- Membuat formulir Tambah Edukasi dengan input tahun, validasi rentang tahun, dan validasi urutan tahun (`7eb2df6`).
+- Menambahkan opsi Add Experience dan Add Education di drawer (`7fd266d`).
+- Menambahkan kartu Tambah Pengalaman dan Tambah Edukasi di halaman utama (`ff539a4`).
+- Menambahkan pengujian widget untuk navigasi, validasi, dialog ringkasan, dan layar sempit.
+- Menulis jawaban pertanyaan reflektif Tugas 8 di README ini.
 
 ## AI disclosure
 
@@ -161,3 +206,22 @@ Saya tidak menggunakan AI. Seluruh implementasi dan dokumentasi pada tugas ini d
    Hot restart juga menjalankan ulang kode Dart, tetapi state dan riwayat navigasi direset. Aplikasi kembali ke halaman awal. Hot restart dipakai saat perubahan ada di `main()`, inisialisasi di `initState`, variabel global atau static, atau ketika hot reload meninggalkan state lama yang tidak sesuai. Full restart (berhenti lalu menjalankan ulang aplikasi) diperlukan saat perubahan menyentuh kode native, plugin, `pubspec.yaml` dan dependency, `AndroidManifest.xml`, `Info.plist`, atau konfigurasi build. Perubahan seperti itu tidak cukup ditangani oleh hot reload karena bagian native atau dependency belum ikut dimuat ulang.
 
    Di proyek ini, perubahan tampilan menu dan halaman Tentang cukup dengan hot reload. Kalau saya mengubah cara data awal dibuat atau menambah package baru, saya memakai hot restart atau menjalankan ulang `flutter run` agar kode dan dependency benar-benar dimuat dari awal. Hot reload dan hot restart hanya tersedia di mode debug. Build release harus dibuat ulang.
+
+### Tugas 8
+1. `Navigator` menyimpan halaman dalam bentuk tumpukan (stack). `Navigator.push()` menaruh route baru di atas tumpukan, jadi halaman lama tetap ada di bawahnya dan pengguna bisa kembali ke sana. `Navigator.pushReplacement()` juga membuka route baru, tetapi route yang sedang aktif dibuang dulu, sehingga tumpukan tidak bertambah dan tidak ada halaman lama untuk dituju saat menekan kembali. `Navigator.pop()` membuang route paling atas dan menampilkan route di bawahnya. Method ini juga dipakai untuk menutup dialog, misalnya tombol OK di dialog ringkasan.
+
+   Kartu aksi membuka formulir dengan `Navigator.push()`. Di `ItemCard`, kalau `item.page` tidak null, kartu memanggil `Navigator.push(context, MaterialPageRoute(builder: (context) => page))`. Karena halaman utama masih ada di bawah formulir, tombol kembali bawaan perangkat (atau tombol back di browser) menjalankan `pop` dan membawa pengguna kembali ke halaman utama. AppBar formulir menampilkan ikon menu, bukan tombol kembali, karena halaman formulir memakai drawer.
+
+   Opsi Home di `LeftDrawer` memanggil `Navigator.pushReplacement()` dengan `MyHomePage()`. Halaman formulir yang sedang terbuka diganti dengan halaman utama yang baru, jadi pengguna tiba di halaman utama tanpa menumpuk halaman formulir di belakangnya. Opsi Add Project, Add Experience, dan Add Education juga memakai `pushReplacement`, sehingga berpindah-pindah lewat drawer tidak membuat tumpukan route makin panjang. Cara ini juga yang saya pakai untuk menguji alur kembali di Chrome.
+
+2. Setiap halaman memakai susunan yang sama: `Scaffold` sebagai kerangka, `AppBar` di atas, `drawer: const LeftDrawer()` di samping, dan isi halaman di `body`. `Scaffold` sudah menyediakan tempat untuk AppBar, drawer, body, dan SnackBar, jadi saya tidak perlu mengatur posisi bagian-bagian itu sendiri di setiap halaman. `AppBar` selalu menampilkan judul halaman dengan gaya yang sama. Kalau halaman punya drawer, AppBar otomatis menampilkan ikon menu untuk membukanya. Ikon ini didahulukan daripada tombol kembali, jadi halaman yang dibuka dengan `push` tetap bisa ditutup lewat tombol kembali bawaan perangkat atau browser. Karena semua halaman memakai widget `LeftDrawer` yang sama, daftar opsinya selalu sama. Saat saya menambah Add Experience dan Add Education, cukup mengubah satu berkas dan perubahannya langsung terlihat di semua halaman.
+
+   Contoh warna tema yang dipakai di lebih dari satu halaman adalah `Theme.of(context).colorScheme.primary`. Warna ini berasal dari `ColorScheme.fromSeed(seedColor: Colors.indigo)` di `main.dart`. Warna yang sama dipakai untuk latar AppBar di halaman utama, halaman Tentang, formulir Tambah Pengalaman, dan formulir Tambah Edukasi, juga untuk header drawer dan tombol Simpan. Kalau warna seed di `main.dart` diganti, semua bagian itu ikut berubah tanpa mengubah setiap halaman.
+
+3. Formulir saya susun dalam satu kolom: `SafeArea`, lalu `Form`, `SingleChildScrollView`, `Center`, `ConstrainedBox`, dan `Column`. Satu kolom paling mudah dibaca di layar ponsel karena pengguna cukup mengisi dari atas ke bawah, dan urutan isiannya mengikuti urutan field di model Django. `CrossAxisAlignment.stretch` membuat setiap input dan tombol Simpan selebar layar, sehingga mudah diketuk. `ConstrainedBox` dengan lebar maksimal 600 piksel menjaga formulir tidak terlalu lebar saat dibuka di Chrome desktop. Tombol Simpan ada di akhir isi yang bisa digulir, bukan di posisi tetap, supaya tidak menutupi input saat papan ketik tampil.
+
+   Widget pengatur jarak seperti `SizedBox(height: 16.0)` di antara input dan `padding: EdgeInsets.all(16.0)` di `SingleChildScrollView` memberi ruang yang konsisten. Jarak ini membuat label, pesan kesalahan, dan batas tiap input tidak saling berdempetan, dan isi formulir tidak menempel ke tepi layar. `SingleChildScrollView` adalah widget penggulirnya. Saat layar pendek atau papan ketik tampil, `Scaffold` mengecilkan area body, dan tanpa penggulir `Column` akan overflow lalu tombol Simpan tidak bisa dijangkau. Dengan penggulir, pengguna tinggal menggulir ke bawah. `keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag` juga menutup papan ketik saat pengguna menggulir. Pengujian `tombol Simpan tetap terjangkau di layar sempit` memastikan tombol tetap bisa diketuk di layar 320×480.
+
+4. `GlobalKey<FormState>` adalah kunci yang dipasang di widget `Form` dan menjadi pegangan ke state formulir tersebut. Lewat `_formKey.currentState`, tombol Simpan bisa memanggil method milik formulir seperti `validate()` dan `reset()` tanpa harus menyimpan referensi setiap input satu per satu. Validator adalah fungsi di setiap `TextFormField` atau `DropdownButtonFormField` yang menerima nilai isian, lalu mengembalikan `null` kalau valid atau teks pesan kesalahan kalau tidak valid. Validator yang dipakai bersama saya kumpulkan di `lib/utils/validators.dart`. `validate()` menjalankan semua validator di dalam `Form`, menampilkan pesan kesalahan di bawah kolom yang gagal, dan mengembalikan `true` hanya kalau semua isian valid. Saat tombol Simpan ditekan, `_submit()` memanggil `_formKey.currentState!.validate()`. Kalau hasilnya `false`, fungsi berhenti dan dialog tidak muncul. Kalau `true`, data dibaca dari controller, dibuat menjadi objek `Experience` atau `Education`, lalu ditampilkan di `AlertDialog` lewat `showDialog()`.
+
+   Contoh nilai yang ditolak adalah tahun mulai `0999` di formulir Tambah Edukasi. Input tahun memakai `TextInputType.number`, `FilteringTextInputFormatter.digitsOnly`, dan `maxLength: 4`, tetapi `0999` tetap terdiri dari empat angka sehingga lolos dari semua pembatas itu. Validator menolaknya dengan pesan "Tahun mulai harus berupa tahun antara 1000 dan 9999!" karena model `Education` memakai `MinValueValidator(1000)`. Contoh lain adalah tahun selesai `2020` dengan tahun mulai `2025`, atau URL thumbnail `bukan-url` walaupun papan ketiknya sudah `TextInputType.url`. Jenis input dan papan ketik hanya mengatur tombol apa yang muncul. Di Chrome atau saat pengguna menempel teks, aturan itu bisa dilewati, dan papan ketik tidak bisa mengecek aturan model seperti rentang angka, format URL, isian yang hanya berisi spasi, batas 255 karakter, atau urutan tanggal yang bergantung pada isian lain. Karena itu, validator tetap diperlukan sebagai pemeriksaan terakhir sebelum data dianggap sah.
