@@ -3,6 +3,7 @@ import 'package:myportofolio_mobile/screens/about_page.dart';
 import 'package:myportofolio_mobile/screens/education_form.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
 import 'package:myportofolio_mobile/widgets/left_drawer.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
@@ -14,12 +15,18 @@ class MyHomePage extends StatelessWidget {
   final String kelas = "PBP E";
 
   final List<ItemHomepage> items = [
-    ItemHomepage("Lihat Portofolio", Icons.folder, Colors.blue.shade700),
+    ItemHomepage(
+      "Lihat Portofolio",
+      Icons.folder,
+      Colors.blue.shade700,
+      page: const ProjectListScreen(),
+    ),
     ItemHomepage(
       "Tambah Proyek",
       Icons.add_circle,
       Colors.green.shade800,
       page: const ProjectFormPage(),
+      requiresAuth: true,
     ),
     ItemHomepage(
       "Tambah Pengalaman",
@@ -153,6 +160,13 @@ class ItemHomepage {
   final IconData icon;
   final Color color;
   final Widget? page;
+  final bool requiresAuth;
 
-  ItemHomepage(this.name, this.icon, this.color, {this.page});
+  ItemHomepage(
+    this.name,
+    this.icon,
+    this.color, {
+    this.page,
+    this.requiresAuth = false,
+  });
 }

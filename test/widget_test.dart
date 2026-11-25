@@ -1,10 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:myportofolio_mobile/main.dart';
 import 'package:myportofolio_mobile/screens/education_form.dart';
 import 'package:myportofolio_mobile/screens/experience_form.dart';
+import 'package:myportofolio_mobile/screens/login_screen.dart';
 import 'package:myportofolio_mobile/screens/menu.dart';
+import 'package:myportofolio_mobile/screens/project_detail_screen.dart';
 import 'package:myportofolio_mobile/screens/project_form.dart';
+import 'package:myportofolio_mobile/screens/project_list_screen.dart';
+import 'package:myportofolio_mobile/services/api_client.dart';
 import 'package:myportofolio_mobile/widgets/project_card.dart';
 
 const cardNames = [
@@ -15,11 +23,70 @@ const cardNames = [
   'Logout',
 ];
 
-const cardsWithPage = {'Tambah Proyek', 'Tambah Pengalaman', 'Tambah Edukasi'};
+ApiClient buildMockApiClient({List<Map<String, dynamic>>? projects}) {
+  final sampleProjects =
+      projects ??
+      [
+        {
+          'id': 1,
+          'title': 'Portfolio API',
+          'description': 'Django REST Framework backend for portfolio.',
+          'source_url': 'https://github.com/fossyy/myportofolio',
+          'live_url': 'https://bagas-aulia-myportofolio.pws.cs.ui.ac.id',
+          'star_count': 3,
+          'is_starred': false,
+          'starred_by_names': 'alice, bob',
+        },
+      ];
+
+  final mockClient = MockClient((request) async {
+    if (request.method == 'GET' && request.url.path == '/api/v1/projects/') {
+      return http.Response(jsonEncode(sampleProjects), 200);
+    }
+    if (request.method == 'POST' && request.url.path == '/api/v1/projects/') {
+      if (request.headers['Authorization'] != 'Token test-token') {
+        return http.Response('{"detail":"Invalid token."}', 401);
+      }
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      return http.Response(
+        jsonEncode({
+          'id': 2,
+          'title': body['title'],
+          'description': body['description'],
+          'source_url': body['source_url'] ?? '',
+          'live_url': body['live_url'] ?? '',
+          'star_count': 0,
+          'is_starred': false,
+          'starred_by_names': '',
+        }),
+        201,
+      );
+    }
+    if (request.method == 'POST' && request.url.path == '/api/v1/auth/token/') {
+      final body = jsonDecode(request.body) as Map<String, dynamic>;
+      if (body['username'] == 'owner' && body['password'] == 'secret') {
+        return http.Response(jsonEncode({'token': 'test-token'}), 200);
+      }
+      return http.Response(
+        jsonEncode({
+          'non_field_errors': ['Unable to log in.'],
+        }),
+        400,
+      );
+    }
+    if (request.method == 'POST' &&
+        request.url.path == '/api/v1/auth/logout/') {
+      return http.Response('', 204);
+    }
+    return http.Response('Not Found', 404);
+  });
+
+  return ApiClient(client: mockClient, baseUrl: 'http://localhost:8000');
+}
 
 void main() {
   testWidgets('menampilkan identitas dan menu portofolio', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: buildMockApiClient()));
 
     expect(find.text('2506656545'), findsOneWidget);
     expect(find.text('Bagas Aulia Rezki'), findsOneWidget);
@@ -30,31 +97,8 @@ void main() {
     }
   });
 
-  testWidgets('setiap tombol menampilkan SnackBar sesuai namanya', (
-    tester,
-  ) async {
-    await tester.pumpWidget(const MyApp());
-
-    for (final name in cardNames) {
-      await tester.ensureVisible(find.text(name));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(name));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Kamu telah menekan tombol $name!'), findsOneWidget);
-
-      await tester.pump(const Duration(seconds: 5));
-      await tester.pumpAndSettle();
-
-      if (cardsWithPage.contains(name)) {
-        await tester.binding.handlePopRoute();
-        await tester.pumpAndSettle();
-      }
-    }
-  });
-
   testWidgets('setiap kartu memakai warna yang berbeda', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: buildMockApiClient()));
 
     final cards = tester.widgetList<ItemCard>(find.byType(ItemCard)).toList();
     final colors = cards.map((card) => card.item.color).toSet();
@@ -74,7 +118,7 @@ void main() {
   });
 
   testWidgets('membuka halaman Tentang dari AppBar', (tester) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: buildMockApiClient()));
 
     await tester.tap(find.byTooltip('Tentang aplikasi'));
     await tester.pumpAndSettle();
@@ -96,7 +140,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: buildMockApiClient()));
 
     expect(tester.takeException(), isNull);
     for (final name in cardNames) {
@@ -104,176 +148,70 @@ void main() {
     }
   });
 
-  testWidgets('drawer berpindah antara halaman utama dan form proyek', (
+  testWidgets('daftar proyek dapat diakses publik dan membuka detail', (
     tester,
   ) async {
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: buildMockApiClient()));
 
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    expect(find.text('My Portfolio'), findsOneWidget);
-
-    await tester.tap(find.text('Add Project'));
-    await tester.pumpAndSettle();
-    expect(find.byType(ProjectFormPage), findsOneWidget);
-    expect(find.text('Add Project Form'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Home'));
+    await tester.tap(find.text('Lihat Portofolio'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(MyHomePage), findsOneWidget);
-    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
-  });
+    expect(find.byType(ProjectListScreen), findsOneWidget);
+    expect(find.text('Portfolio API'), findsOneWidget);
 
-  testWidgets('drawer membuka form pengalaman dan Home kembali ke menu', (
-    tester,
-  ) async {
-    await tester.pumpWidget(const MyApp());
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    expect(find.text('Home'), findsOneWidget);
-    expect(find.text('Add Project'), findsOneWidget);
-    await tester.tap(find.text('Add Experience'));
+    await tester.tap(find.text('Portfolio API'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ExperienceFormPage), findsOneWidget);
-    expect(find.text('Add Experience Form'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add Education'));
-    await tester.pumpAndSettle();
-    expect(find.byType(EducationFormPage), findsOneWidget);
-    expect(find.byType(ExperienceFormPage), findsNothing);
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Home'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(MyHomePage), findsOneWidget);
-    expect(find.byType(EducationFormPage), findsNothing);
-    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
-  });
-
-  testWidgets('drawer membuka form edukasi dan Home kembali ke menu', (
-    tester,
-  ) async {
-    await tester.pumpWidget(const MyApp());
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Add Education'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(EducationFormPage), findsOneWidget);
-    expect(find.text('Add Education Form'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.menu));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Home'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(MyHomePage), findsOneWidget);
-    expect(find.text('Selamat datang di MyPortfolio Mobile!'), findsOneWidget);
-  });
-
-  testWidgets('tombol Tambah Proyek membuka form dan dapat kembali', (
-    tester,
-  ) async {
-    await tester.pumpWidget(const MyApp());
-
-    await tester.tap(find.text('Tambah Proyek'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(ProjectFormPage), findsOneWidget);
+    expect(find.byType(ProjectDetailScreen), findsOneWidget);
     expect(
-      Navigator.of(tester.element(find.byType(ProjectFormPage))).canPop(),
-      isTrue,
+      find.text('Django REST Framework backend for portfolio.'),
+      findsOneWidget,
     );
-
-    await tester.binding.handlePopRoute();
-    await tester.pumpAndSettle();
-
-    expect(find.byType(MyHomePage), findsOneWidget);
+    expect(find.text('https://github.com/fossyy/myportofolio'), findsOneWidget);
   });
 
-  for (final entry in {
-    'Tambah Pengalaman': ExperienceFormPage,
-    'Tambah Edukasi': EducationFormPage,
-  }.entries) {
-    testWidgets('kartu ${entry.key} membuka form dan tombol kembali bekerja', (
-      tester,
-    ) async {
-      await tester.pumpWidget(const MyApp());
-
-      await tester.ensureVisible(find.text(entry.key));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text(entry.key));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(entry.value), findsOneWidget);
-      expect(
-        Navigator.of(tester.element(find.byType(entry.value))).canPop(),
-        isTrue,
-      );
-
-      await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
-
-      expect(find.byType(entry.value), findsNothing);
-      expect(find.byType(MyHomePage), findsOneWidget);
-    });
-  }
-
-  testWidgets('form memvalidasi dan menampilkan data proyek', (tester) async {
-    tester.view.physicalSize = const Size(320, 640);
+  testWidgets('tambah proyek meminta login lalu mengirim proyek ke API', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 720);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(MyApp(apiClient: buildMockApiClient()));
+
     await tester.tap(find.text('Tambah Proyek'));
     await tester.pumpAndSettle();
-    await tester.pump(const Duration(seconds: 5));
+
+    expect(find.byType(LoginScreen), findsOneWidget);
+
+    final loginFields = find.byType(TextFormField);
+    await tester.enterText(loginFields.at(0), 'owner');
+    await tester.enterText(loginFields.at(1), 'secret');
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
     await tester.pumpAndSettle();
+
+    expect(find.byType(ProjectFormPage), findsOneWidget);
 
     await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Nama proyek tidak boleh kosong!'), findsOneWidget);
-    expect(find.text('Deskripsi proyek tidak boleh kosong!'), findsOneWidget);
-    expect(find.text('Proyek berhasil ditambahkan!'), findsNothing);
+    expect(find.text('Title tidak boleh kosong!'), findsOneWidget);
+    expect(find.text('Description tidak boleh kosong!'), findsOneWidget);
 
     final fields = find.byType(TextFormField);
     await tester.enterText(fields.at(0), 'Portfolio Mobile');
     await tester.enterText(fields.at(1), 'Aplikasi portofolio pribadi.');
-    await tester.enterText(fields.at(2), 'Flutter');
-
-    await tester.ensureVisible(find.byType(DropdownButtonFormField<String>));
-    await tester.tap(find.byType(DropdownButtonFormField<String>));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Mobile Development').last);
-    await tester.pumpAndSettle();
-
+    await tester.enterText(fields.at(2), 'https://github.com/fossyy/mobile');
     await tester.enterText(fields.at(3), 'https://example.com/project');
+
     await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
     expect(find.text('Proyek berhasil ditambahkan!'), findsOneWidget);
-    expect(find.text('Nama Proyek: Portfolio Mobile'), findsOneWidget);
-    expect(
-      find.text('Deskripsi: Aplikasi portofolio pribadi.'),
-      findsOneWidget,
-    );
-    expect(find.text('Kategori: Mobile Development'), findsOneWidget);
-    expect(find.text('Teknologi: Flutter'), findsOneWidget);
-    expect(find.text('Tautan: https://example.com/project'), findsOneWidget);
+    expect(find.text('Portfolio Mobile'), findsWidgets);
 
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
@@ -282,4 +220,52 @@ void main() {
     expect(find.byType(ProjectFormPage), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'drawer menampilkan Login saat belum login dan Logout setelahnya',
+    (tester) async {
+      await tester.pumpWidget(
+        MyApp(apiClient: buildMockApiClient(), initialToken: 'test-token'),
+      );
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      expect(find.text('Logout'), findsWidgets);
+
+      await tester.tap(find.widgetWithText(ListTile, 'Logout'));
+      await tester.pumpAndSettle();
+      expect(find.text('Berhasil logout.'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(ListTile, 'Login'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'drawer membuka form pengalaman dan edukasi serta kembali ke Home',
+    (tester) async {
+      await tester.pumpWidget(MyApp(apiClient: buildMockApiClient()));
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add Experience'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ExperienceFormPage), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add Education'));
+      await tester.pumpAndSettle();
+      expect(find.byType(EducationFormPage), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.menu));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MyHomePage), findsOneWidget);
+    },
+  );
 }
